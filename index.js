@@ -96,7 +96,7 @@ const start = async () => {
 			)
 		}
 		const user = await getData(chatId)
-		if (msg.text !== '/start' && user.buttonSolo) {
+		if (msg.text !== '/start') {
 			bot.sendMessage(
 				chatId,
 				`Спасибо! Мы уже работаем над заказом и скоро вернёмся с ответом 🏃🏼‍♀️🏎️
