@@ -2,7 +2,6 @@ const TelegramApi = require('node-telegram-bot-api')
 const firebase = require('firebase/compat/app')
 require('firebase/compat/firestore')
 const token = '6264616609:AAFad1S00nww5G2zxJeQcmIOHK23BWpa9OQ'
-
 const bot = new TelegramApi(token, { polling: true })
 
 const firebaseApp = firebase.initializeApp({
@@ -14,6 +13,7 @@ const firebaseApp = firebase.initializeApp({
 	appId: '1:460490875535:web:29f9bee877ddf3643d46fa',
 	measurementId: 'G-39NWCJJJSX',
 })
+
 const firestore = firebaseApp.firestore()
 
 const addData = async (chatId, userName, userFirstName, userLastName) => {
@@ -24,21 +24,28 @@ const addData = async (chatId, userName, userFirstName, userLastName) => {
 		userLastName: userLastName,
 		buttonSolo: false,
 		buttonAssist: false,
+		text: [],
 	})
 }
 const newData = async (chatId, buttonSolo, buttonAssist) => {
 	chatId = chatId.toString()
 	if (buttonSolo)
-		firestore.collection('users').doc(chatId).set(
-			{
-				buttonSolo: true,
-			},
-			{ merge: true }
-		)
+		firestore.collection('users').doc(chatId).update({
+			buttonSolo: true,
+		})
 	if (buttonAssist)
-		firestore.collection('users').doc(chatId).set(
+		firestore.collection('users').doc(chatId).update({
+			buttonAssist: true,
+		})
+}
+const newText = async (chatId, text) => {
+	chatId = chatId.toString()
+	firestore
+		.collection('users')
+		.doc(chatId)
+		.set(
 			{
-				buttonAssist: true,
+				text: firebase.firestore.FieldValue.arrayUnion(text),
 			},
 			{ merge: true }
 		)
@@ -75,7 +82,9 @@ const start = async () => {
 		const userName = msg.chat.username
 		const userFirstName = msg.chat.first_name || 'не указанно'
 		const userLastName = msg.chat.last_name || 'не указанно'
-		if (msg.text === '/start') {
+		const text = msg.text
+
+		if (text === '/start') {
 			startFlag = true
 			await addData(chatId, userName, userFirstName, userLastName)
 			setTimeout(() => {
@@ -95,8 +104,9 @@ const start = async () => {
 				buttonOpt
 			)
 		}
-		const user = await getData(chatId)
-		if (msg.text !== '/start') {
+		//const user = await getData(chatId)
+		if (text !== '/start') {
+			newText(chatId, text)
 			bot.sendMessage(
 				chatId,
 				`Спасибо! Мы уже работаем над заказом и скоро вернёмся с ответом 🏃🏼‍♀️🏎️
